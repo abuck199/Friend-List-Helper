@@ -539,87 +539,6 @@ function FriendsList_CanWhisperFriend(friendType, friendIndex)
 	return false;
 end
 
-function FriendsList_Update(forceUpdate)
-	local numBNetTotal, numBNetOnline, numBNetFavorite, numBNetFavoriteOnline = BNGetNumFriends();
-	local numBNetOffline = numBNetTotal - numBNetOnline;
-	local numBNetFavoriteOffline = numBNetFavorite - numBNetFavoriteOnline;
-	local numWoWTotal = C_FriendList.GetNumFriends();
-	local numWoWOnline = C_FriendList.GetNumOnlineFriends();
-	local numWoWOffline = numWoWTotal - numWoWOnline;
-
-	QuickJoinToastButton:UpdateDisplayedFriendCount();
-	if ( not FriendsListFrame:IsShown() and not forceUpdate) then
-		return;
-	end
-
-	local dataProvider = CreateDataProvider();
-
-	-- invites
-	local numInvites = BNGetNumFriendInvites();
-	if ( numInvites > 0 ) then
-		dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_INVITE_HEADER});
-		if ( not GetCVarBool("friendInvitesCollapsed") ) then
-			for i = 1, numInvites do
-				dataProvider:Insert({id=i, buttonType=FRIENDS_BUTTON_TYPE_INVITE});
-			end
-			-- add divider before friends
-			if ( numBNetTotal + numWoWTotal > 0 ) then
-				dataProvider:Insert({buttonType= FRIENDS_BUTTON_TYPE_DIVIDER});
-			end
-		end
-	end
-
-	local bnetFriendIndex = 0;
-	-- favorite friends, online and offline
-	for i = 1, numBNetFavorite do
-		bnetFriendIndex = bnetFriendIndex + 1;
-		dataProvider:Insert({id=bnetFriendIndex, buttonType=FRIENDS_BUTTON_TYPE_BNET});
-	end
-	if (numBNetFavorite > 0) then
-		dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_DIVIDER});
-	end
-
-	-- online Battlenet friends
-	for i = 1, numBNetOnline - numBNetFavoriteOnline do
-		bnetFriendIndex = bnetFriendIndex + 1;
-		dataProvider:Insert({id=bnetFriendIndex, buttonType=FRIENDS_BUTTON_TYPE_BNET});
-	end
-	-- online WoW friends
-	for i = 1, numWoWOnline do
-		dataProvider:Insert({id=i, buttonType=FRIENDS_BUTTON_TYPE_WOW});
-	end
-	-- divider between online and offline friends
-	if ( (numBNetOnline > 0 or numWoWOnline > 0) and (numBNetOffline > 0 or numWoWOffline > 0) ) then
-		dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_DIVIDER});
-	end
-
-	-- offline Battlenet friends
-	for i = 1, numBNetOffline - numBNetFavoriteOffline do
-		bnetFriendIndex = bnetFriendIndex + 1;
-		dataProvider:Insert({id=bnetFriendIndex, buttonType=FRIENDS_BUTTON_TYPE_BNET});
-	end
-	-- offline WoW friends
-	for i = 1, numWoWOffline do
-		dataProvider:Insert({id=i+numWoWOnline, buttonType=FRIENDS_BUTTON_TYPE_WOW});
-	end
-
-	local retainScrollPosition = not forceUpdate;
-	FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
-
-	if not FriendsFrame.selectedFriendType then
-		local elementData = dataProvider:FindElementDataByPredicate(function(elementData)
-			return elementData.buttonType == FRIENDS_BUTTON_TYPE_WOW or elementData.buttonType == FRIENDS_BUTTON_TYPE_BNET;
-		end);
-		if elementData then
-			FriendsFrame_SelectFriend(elementData.buttonType, elementData.id);
-		else
-			FriendsFrameSendMessageButton:Disable();
-		end
-	end
-
-	-- RID warning, upon getting the first RID invite
-	FriendsList_CheckRIDWarning();
-end
 -- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FriendsFrameAddFriendButton:SetWidth(90)
@@ -633,50 +552,119 @@ FriendSearchBar:Show()
 FriendSearchBar:SetAutoFocus(false)
 FriendSearchBar:ClearFocus()
 
-FriendSearchBar:SetScript("OnTextChanged", function()
-	UpdateFriendButtons()
-end )
-
-function UpdateFriendButtons(forceUpdate)
-	-- UpdateFriendInfo()
-    local numBNetTotal, numBNetOnline, numBNetFavorite, numBNetFavoriteOnline = BNGetNumFriends();
+function FriendsList_Update(forceUpdate)
+	local numBNetTotal, numBNetOnline, numBNetFavorite, numBNetFavoriteOnline = BNGetNumFriends();
 	local numBNetOffline = numBNetTotal - numBNetOnline;
 	local numBNetFavoriteOffline = numBNetFavorite - numBNetFavoriteOnline;
 	local numWoWTotal = C_FriendList.GetNumFriends();
 	local numWoWOnline = C_FriendList.GetNumOnlineFriends();
 	local numWoWOffline = numWoWTotal - numWoWOnline;
-    local bnetFriendIndex = 0;
-    local dataProvider = CreateDataProvider()
+	local dataProvider = CreateDataProvider();
 	AddingTableForCustomSearchBarBnetName = {}
 
-	for h = 1, numBNetTotal do
-		local bnetIDAccount, accountName, battleTag, isBattleTagPresence, characterName, bnetIDGameAccount, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR, isReferAFriend, canSummonFriend = BNGetFriendInfo(h)
-		table.insert(AddingTableForCustomSearchBarBnetName, string.lower(string.match(battleTag, "(.*)#")))
-	end
-
-	for p = 1, numBNetTotal do
-		if #FriendSearchBar:GetText() ~= 0 then
-			if string.find(string.lower(FriendSearchBar:GetText()), string.sub(AddingTableForCustomSearchBarBnetName[p], 1, #FriendSearchBar:GetText())) then
-				dataProvider:Insert({id=p, buttonType=FRIENDS_BUTTON_TYPE_BNET});
-				local retainScrollPosition = not forceUpdate;
-				FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
+	if #FriendSearchBar:GetText() >= 1 then
+		for h = 1, numBNetTotal do
+			local bnetIDAccount, accountName, battleTag, isBattleTagPresence, characterName, bnetIDGameAccount, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR, isReferAFriend, canSummonFriend = BNGetFriendInfo(h)
+			table.insert(AddingTableForCustomSearchBarBnetName, string.lower(string.match(battleTag, "(.*)#")))
+		end
+		
+		for p = 1, numBNetTotal do
+			if #FriendSearchBar:GetText() ~= 0 then
+				if string.find(string.lower(FriendSearchBar:GetText()), string.sub(AddingTableForCustomSearchBarBnetName[p], 1, #FriendSearchBar:GetText())) then
+					dataProvider:Insert({id=p, buttonType=FRIENDS_BUTTON_TYPE_BNET});
+					local retainScrollPosition = not forceUpdate;
+					FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
+				end
 			end
 		end
+	else
+		QuickJoinToastButton:UpdateDisplayedFriendCount();
+		if ( not FriendsListFrame:IsShown() and not forceUpdate) then
+			return;
+		end
+	
+		-- invites
+		local numInvites = BNGetNumFriendInvites();
+		if ( numInvites > 0 ) then
+			dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_INVITE_HEADER});
+			if ( not GetCVarBool("friendInvitesCollapsed") ) then
+				for i = 1, numInvites do
+					dataProvider:Insert({id=i, buttonType=FRIENDS_BUTTON_TYPE_INVITE});
+				end
+				-- add divider before friends
+				if ( numBNetTotal + numWoWTotal > 0 ) then
+					dataProvider:Insert({buttonType= FRIENDS_BUTTON_TYPE_DIVIDER});
+				end
+			end
+		end
+	
+		local bnetFriendIndex = 0;
+		-- favorite friends, online and offline
+		for i = 1, numBNetFavorite do
+			bnetFriendIndex = bnetFriendIndex + 1;
+			dataProvider:Insert({id=bnetFriendIndex, buttonType=FRIENDS_BUTTON_TYPE_BNET});
+		end
+		if (numBNetFavorite > 0) then
+			dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_DIVIDER});
+		end
+	
+		-- online Battlenet friends
+		for i = 1, numBNetOnline - numBNetFavoriteOnline do
+			bnetFriendIndex = bnetFriendIndex + 1;
+			dataProvider:Insert({id=bnetFriendIndex, buttonType=FRIENDS_BUTTON_TYPE_BNET});
+		end
+		-- online WoW friends
+		for i = 1, numWoWOnline do
+			dataProvider:Insert({id=i, buttonType=FRIENDS_BUTTON_TYPE_WOW});
+		end
+		-- divider between online and offline friends
+		if ( (numBNetOnline > 0 or numWoWOnline > 0) and (numBNetOffline > 0 or numWoWOffline > 0) ) then
+			dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_DIVIDER});
+		end
+	
+		-- offline Battlenet friends
+		for i = 1, numBNetOffline - numBNetFavoriteOffline do
+			bnetFriendIndex = bnetFriendIndex + 1;
+			dataProvider:Insert({id=bnetFriendIndex, buttonType=FRIENDS_BUTTON_TYPE_BNET});
+		end
+		-- offline WoW friends
+		for i = 1, numWoWOffline do
+			dataProvider:Insert({id=i+numWoWOnline, buttonType=FRIENDS_BUTTON_TYPE_WOW});
+		end
+	
+		local retainScrollPosition = not forceUpdate;
+		FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
+	
+		if not FriendsFrame.selectedFriendType then
+			local elementData = dataProvider:FindElementDataByPredicate(function(elementData)
+				return elementData.buttonType == FRIENDS_BUTTON_TYPE_WOW or elementData.buttonType == FRIENDS_BUTTON_TYPE_BNET;
+			end);
+			if elementData then
+				FriendsFrame_SelectFriend(elementData.buttonType, elementData.id);
+			else
+				FriendsFrameSendMessageButton:Disable();
+			end
+		end
+		-- RID warning, upon getting the first RID invite
+		FriendsList_CheckRIDWarning();
 	end
 end
 
+FriendSearchBar:SetScript("OnTextChanged", function()
+	FriendsList_Update()
+end )
 
 local FriendSearchLiteOriginalOnMouseWheel = FriendsListFrame.ScrollBox:GetScript("OnMouseWheel")
 
 FriendsListFrame.ScrollBox:SetScript("OnMouseWheel", function(...)
 	FriendSearchLiteOriginalOnMouseWheel(...)
-	UpdateFriendButtons()
+	FriendsList_Update()
 end )
 
 FriendSearchBar:SetScript("OnEnterPressed", function()
 	FriendSearchBar:SetAutoFocus(false)
 	FriendSearchBar:ClearFocus()
-	UpdateFriendButtons()
+	FriendsList_Update()
 end )
 
 FriendSearchBar:SetScript("OnHide", function()
