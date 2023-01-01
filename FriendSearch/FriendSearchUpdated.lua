@@ -647,50 +647,22 @@ function UpdateFriendButtons(forceUpdate)
 	local numWoWOffline = numWoWTotal - numWoWOnline;
     local bnetFriendIndex = 0;
     local dataProvider = CreateDataProvider()
-	AddingTableForCustomSearchBarWoWName = {}
 	AddingTableForCustomSearchBarBnetName = {}
-
-    -- for i=1, numBNetTotal do
-	-- 	local bnetIDAccount, accountName, battleTag, isBattleTagPresence, characterName, bnetIDGameAccount, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR, isReferAFriend, canSummonFriend = BNGetFriendInfo(i)
-	-- 	table.insert(AddingTableForCustomSearchBarBnetName, string.lower(battleTag))
-	-- end
 
 	for h = 1, numBNetTotal do
 		local bnetIDAccount, accountName, battleTag, isBattleTagPresence, characterName, bnetIDGameAccount, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR, isReferAFriend, canSummonFriend = BNGetFriendInfo(h)
 		table.insert(AddingTableForCustomSearchBarBnetName, string.lower(string.match(battleTag, "(.*)#")))
 	end
 
-	-- for i = 1, BNGetNumFriends() do
-	-- 	for j = 1, C_BattleNet.GetFriendNumGameAccounts(i) do
-	-- 		local game = C_BattleNet.GetFriendGameAccountInfo(i, j)
-	-- 		if game.characterName ~= nil then
-    --             table.insert(AddingTableForCustomSearchBarWoWName, string.lower(game.characterName))
-	-- 		end
-	-- 	end
-    -- end
-
-    -- local updateFriendInfoBnet = UpdateFriendInfo()[1]
-    -- local updateFriendInfoBnetExtracted = string.lower(string.match(updateFriendInfoBnet, "(.*)#"))
-    -- local updateFriendInfoCharacterName = UpdateFriendInfo()[2]
-    -- local updateFriendInfoCharacterNameExtracted = string.lower(updateFriendInfoCharacterName)
-
-	-- print(Argve)
-	-- local _, count = string.gsub(Argve, " %-%-", "")
-	Argve = FriendSearchBar:GetText()
-	local countTest = #Argve
-	-- if Argve ~= nil then
-		for p = 1, numBNetTotal do
-			-- print(string.sub(AddingTableForCustomSearchBarBnetName[p],1,2))
-			-- if string.find(string.lower(FriendSearchBar:GetText()), updateFriendInfoBnetExtracted) or string.find(string.lower(FriendSearchBar:GetText()), updateFriendInfoCharacterNameExtracted) then
-			if Argve ~= nil then
-				if string.find(string.lower(FriendSearchBar:GetText()), string.sub(AddingTableForCustomSearchBarBnetName[p], 1, #FriendSearchBar:GetText())) then
-					dataProvider:Insert({id=p, buttonType=FRIENDS_BUTTON_TYPE_BNET});
-					local retainScrollPosition = not forceUpdate;
-					FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
-				end
+	for p = 1, numBNetTotal do
+		if #FriendSearchBar:GetText() ~= 0 then
+			if string.find(string.lower(FriendSearchBar:GetText()), string.sub(AddingTableForCustomSearchBarBnetName[p], 1, #FriendSearchBar:GetText())) then
+				dataProvider:Insert({id=p, buttonType=FRIENDS_BUTTON_TYPE_BNET});
+				local retainScrollPosition = not forceUpdate;
+				FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
 			end
 		end
-	-- end
+	end
 end
 
 
@@ -712,16 +684,6 @@ FriendSearchBar:SetScript("OnHide", function()
 	FriendSearchBar:SetAutoFocus(false)
 	FriendSearchBar:ClearFocus()
 end )
-
--- function UpdateFriendInfo()
--- 	numFriends, numOnline = BNGetNumFriends()
--- 	for i=1, numOnline do
--- 		local bnetIDAccount, accountName, battleTag, isBattleTagPresence, characterName, bnetIDGameAccount, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR, isReferAFriend, canSummonFriend = BNGetFriendInfo(i)
--- 		-- print(battleTag)
---         -- return FriendSearchBar:SetAttribute(string.match(accountName,"%d+"),{battleTag,characterName})
--- 		return {battleTag, characterName}
--- 	end
--- end
 
 local function getDeprecatedAccountInfo(accountInfo)
 	if accountInfo then
