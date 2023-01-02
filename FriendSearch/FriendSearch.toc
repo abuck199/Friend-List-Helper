@@ -1,8 +1,0 @@
-## Title: |c0189ADB1FriendSearch|r
-## Version: 1.0
-## Author: Bucksp - Zul'jin (NA)
-## Notes: Made by Bucksp - Zul'jin
-## Interface: 100002
-
-FriendSearchUpdated.lua
-WowFriendOnline.lua

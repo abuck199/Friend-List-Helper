@@ -1,0 +1,8 @@
+## Interface: 100002
+## Title: |c0189ADB1FriendListHelper|r
+## Version: 1.2
+## Author: Bucksp - Zul'jin (NA)
+## Notes: Made by Bucksp - Zul'jin (NA)
+
+FriendListHelper.lua
+WowOnlineFriend.lua

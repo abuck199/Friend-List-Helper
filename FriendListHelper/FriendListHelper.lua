@@ -539,19 +539,20 @@ function FriendsList_CanWhisperFriend(friendType, friendIndex)
 	return false;
 end
 
--- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-FriendsFrameAddFriendButton:SetWidth(90)
-FriendsFrameSendMessageButton:Hide()
-
+--------------------------------------------------------------------------------
+-- Adding SearchBar to the Friend List Frame
+--------------------------------------------------------------------------------
 FriendSearchBar = CreateFrame("EditBox", "FriendSearchBar", FriendsListFrame,"InputBoxTemplate")
-FriendSearchBar:SetWidth(230)
-FriendSearchBar:SetHeight(21)
-FriendSearchBar:SetPoint("BOTTOMRIGHT", -7, 4)
+FriendSearchBar:SetWidth(325)
+FriendSearchBar:SetHeight(20)
+FriendSearchBar:SetPoint("BOTTOMLEFT", FriendsListFrame, "BOTTOMLEFT", 10, 4)
 FriendSearchBar:Show()
 FriendSearchBar:SetAutoFocus(false)
 FriendSearchBar:ClearFocus()
 
+--------------------------------------------------------------------------------
+-- Adding modification to blizzard FriendList_Update Function 
+--------------------------------------------------------------------------------
 function FriendsList_Update(forceUpdate)
 	local numBNetTotal, numBNetOnline, numBNetFavorite, numBNetFavoriteOnline = BNGetNumFriends();
 	local numBNetOffline = numBNetTotal - numBNetOnline;
@@ -567,7 +568,7 @@ function FriendsList_Update(forceUpdate)
 			local bnetIDAccount, accountName, battleTag, isBattleTagPresence, characterName, bnetIDGameAccount, client, isOnline, lastOnline, isAFK, isDND, messageText, noteText, isRIDFriend, messageTime, canSoR, isReferAFriend, canSummonFriend = BNGetFriendInfo(h)
 			table.insert(AddingTableForCustomSearchBarBnetName, string.lower(string.match(battleTag, "(.*)#")))
 		end
-		
+
 		for p = 1, numBNetTotal do
 			if #FriendSearchBar:GetText() ~= 0 then
 				if string.find(string.lower(FriendSearchBar:GetText()), string.sub(AddingTableForCustomSearchBarBnetName[p], 1, #FriendSearchBar:GetText())) then
@@ -582,7 +583,7 @@ function FriendsList_Update(forceUpdate)
 		if ( not FriendsListFrame:IsShown() and not forceUpdate) then
 			return;
 		end
-	
+
 		-- invites
 		local numInvites = BNGetNumFriendInvites();
 		if ( numInvites > 0 ) then
@@ -597,7 +598,7 @@ function FriendsList_Update(forceUpdate)
 				end
 			end
 		end
-	
+
 		local bnetFriendIndex = 0;
 		-- favorite friends, online and offline
 		for i = 1, numBNetFavorite do
@@ -607,7 +608,7 @@ function FriendsList_Update(forceUpdate)
 		if (numBNetFavorite > 0) then
 			dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_DIVIDER});
 		end
-	
+
 		-- online Battlenet friends
 		for i = 1, numBNetOnline - numBNetFavoriteOnline do
 			bnetFriendIndex = bnetFriendIndex + 1;
@@ -621,7 +622,7 @@ function FriendsList_Update(forceUpdate)
 		if ( (numBNetOnline > 0 or numWoWOnline > 0) and (numBNetOffline > 0 or numWoWOffline > 0) ) then
 			dataProvider:Insert({buttonType=FRIENDS_BUTTON_TYPE_DIVIDER});
 		end
-	
+
 		-- offline Battlenet friends
 		for i = 1, numBNetOffline - numBNetFavoriteOffline do
 			bnetFriendIndex = bnetFriendIndex + 1;
@@ -631,10 +632,10 @@ function FriendsList_Update(forceUpdate)
 		for i = 1, numWoWOffline do
 			dataProvider:Insert({id=i+numWoWOnline, buttonType=FRIENDS_BUTTON_TYPE_WOW});
 		end
-	
+
 		local retainScrollPosition = not forceUpdate;
 		FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, retainScrollPosition);
-	
+
 		if not FriendsFrame.selectedFriendType then
 			local elementData = dataProvider:FindElementDataByPredicate(function(elementData)
 				return elementData.buttonType == FRIENDS_BUTTON_TYPE_WOW or elementData.buttonType == FRIENDS_BUTTON_TYPE_BNET;
@@ -650,11 +651,14 @@ function FriendsList_Update(forceUpdate)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Adding script to attach function FriendList_Update too
+--------------------------------------------------------------------------------
+local FriendSearchLiteOriginalOnMouseWheel = FriendsListFrame.ScrollBox:GetScript("OnMouseWheel")
+
 FriendSearchBar:SetScript("OnTextChanged", function()
 	FriendsList_Update()
 end )
-
-local FriendSearchLiteOriginalOnMouseWheel = FriendsListFrame.ScrollBox:GetScript("OnMouseWheel")
 
 FriendsListFrame.ScrollBox:SetScript("OnMouseWheel", function(...)
 	FriendSearchLiteOriginalOnMouseWheel(...)
@@ -673,6 +677,9 @@ FriendSearchBar:SetScript("OnHide", function()
 	FriendSearchBar:ClearFocus()
 end )
 
+--------------------------------------------------------------------------------
+-- Get Friend AccountInfo
+--------------------------------------------------------------------------------
 local function getDeprecatedAccountInfo(accountInfo)
 	if accountInfo then
 		local wowProjectID = accountInfo.gameAccountInfo.wowProjectID or 0;
@@ -684,12 +691,13 @@ local function getDeprecatedAccountInfo(accountInfo)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- return Friend AccountInfo with accountInfo parameter
+--------------------------------------------------------------------------------
 BNGetFriendInfo = function(friendIndex)
 	local accountInfo = C_BattleNet.GetFriendAccountInfo(friendIndex);
 	return getDeprecatedAccountInfo(accountInfo);
 end
-
--- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function FriendsList_CheckRIDWarning()
 	local showRIDWarning = false;
