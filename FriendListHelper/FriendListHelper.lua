@@ -1,3 +1,38 @@
+FriendListHelper = LibStub("AceAddon-3.0"):NewAddon("FriendListHelper", "AceEvent-3.0", "AceConsole-3.0")
+local AC = LibStub("AceConfig-3.0")
+local ACD = LibStub("AceConfigDialog-3.0")
+
+function FriendListHelper:OnInitialize()
+	self.db = LibStub("AceDB-3.0"):New("FriendListHelperDB", self.defaults, true)
+
+	AC:RegisterOptionsTable("FriendListHelper_Options", self.options)
+
+	self.optionsFrame = ACD:AddToBlizOptions("FriendListHelper_Options", "FriendListHelper")
+
+	local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+	AC:RegisterOptionsTable("FriendListHelper_Profiles", profiles)
+	ACD:AddToBlizOptions("FriendListHelper_Profiles", "Profiles", "FriendListHelper")
+
+	self:RegisterChatCommand("flh", "SlashCommand")
+	self:RegisterChatCommand("fl", "SlashCommand")
+	self:RegisterChatCommand("friendlist", "SlashCommand")
+	self:RegisterChatCommand("friendlisthelper", "SlashCommand")
+end
+
+function FriendListHelper:SlashCommand(input, editbox)
+	if input == "enable" then
+		self:Enable()
+		self:Print("Enabled.")
+	elseif input == "disable" then
+		self:Disable()
+		self:Print("Disabled.")
+	else
+		print("|c0189ADB1FriendListHelper:|r Made By Bucksp-Zul'jin")
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+	end
+end
+
 FRIENDS_TO_DISPLAY = 10;
 FRIENDS_FRAME_FRIEND_HEIGHT = 34;
 IGNORES_TO_DISPLAY = 19;
@@ -699,6 +734,29 @@ BNGetFriendInfo = function(friendIndex)
 	return getDeprecatedAccountInfo(accountInfo);
 end
 
+--------------------------------------------------------------------------------
+-- add associative array for class color in friend depending of the player class
+--------------------------------------------------------------------------------
+function GetOnlineFriendClassColor() 
+	local classColor = { 
+		Shaman 		= "0070DD", 
+		Mage 		= "3FC7EB",
+		Warlock 	= "8788EE",
+		Hunter		= "AAD372",
+		Rogue		= "FFF468",
+		Priest		= "FFFFFF",
+		Druid 		= "FF7C0A",
+		DeathKnight = "C41E3A",
+		Warrior 	= "C69B6D",
+		Paladin 	= "F48CBA",
+		Monk		= "00FF98",
+		DemonHunter = "A330C9",
+		Evoker		= "33937F",
+	}
+
+	return classColor;
+end
+
 function FriendsList_CheckRIDWarning()
 	local showRIDWarning = false;
 	local numInvites = BNGetNumFriendInvites();
@@ -1319,17 +1377,45 @@ function FriendsFrame_GetBNetAccountNameAndStatus(accountInfo, noCharacterName)
 	local nameText, nameColor, statusTexture;
 
 	nameText = BNet_GetBNetAccountName(accountInfo);
-
+	local classColor = GetOnlineFriendClassColor()
 	if not noCharacterName then
 		local characterName = BNet_GetValidatedCharacterName(accountInfo.gameAccountInfo.characterName, nil, accountInfo.gameAccountInfo.clientProgram);
 		if characterName ~= "" then
 			if accountInfo.gameAccountInfo.clientProgram == BNET_CLIENT_WOW and CanCooperateWithGameAccount(accountInfo) then
-				nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
+				if FriendListHelper.db.profile.ShowFriendClassColor and not FriendListHelper.db.profile.ShowFriendLevelCustom then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")"..FONT_COLOR_CODE_CLOSE;
+				end
+				if FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")".." lvl "..accountInfo.gameAccountInfo.characterLevel..FONT_COLOR_CODE_CLOSE;
+				end
+				if FriendListHelper.db.profile.ShowFriendLevelCustom and FriendListHelper.db.profile.ShowFriendClassColor then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")].." lvl "..accountInfo.gameAccountInfo.characterLevel.."|r"..FONT_COLOR_CODE_CLOSE;
+				end
+				if not FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
+				end
 			else
 				if CVarCallbackRegistry:GetCVarValueBool("colorblindMode") then
 					characterName = accountInfo.gameAccountInfo.characterName..CANNOT_COOPERATE_LABEL;
 				end
-				nameText = nameText.." "..FRIENDS_OTHER_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
+				if FriendListHelper.db.profile.ShowFriendClassColor and not FriendListHelper.db.profile.ShowFriendLevelCustom then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")"..FONT_COLOR_CODE_CLOSE;
+				end
+				if FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")".." lvl "..accountInfo.gameAccountInfo.characterLevel..FONT_COLOR_CODE_CLOSE;
+				end
+				if FriendListHelper.db.profile.ShowFriendLevelCustom and FriendListHelper.db.profile.ShowFriendClassColor then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")].." lvl "..accountInfo.gameAccountInfo.characterLevel.."|r"..FONT_COLOR_CODE_CLOSE;
+				end
+				if not FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
+				end
+			end
+			if FriendListHelper.db.profile.PutGreyNameOnFriendPlayingClassic then
+				if accountInfo.gameAccountInfo.wowProjectID ~= WOW_PROJECT_ID then
+					nameText = BNet_GetBNetAccountName(accountInfo);
+					nameText = nameText.." "..FRIENDS_OTHER_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
+				end
 			end
 		end
 	end
@@ -1506,6 +1592,14 @@ function FriendsFrame_UpdateFriendButton(button, elementData)
 			button.summonButton:ClearAllPoints();
 			button.summonButton:SetPoint("CENTER", button.gameIcon, "CENTER", 1, 0);
 			FriendsFrame_SummonButton_Update(button.summonButton);
+
+			if FriendListHelper.db.profile.FactionColorBackground then
+				if accountInfo.gameAccountInfo.factionName == "Alliance" then
+					button.background:SetColorTexture(0.10, 0.29, 0.67, 0.25);
+				elseif accountInfo.gameAccountInfo.factionName == "Horde" then
+					button.background:SetColorTexture(0.53, 0.20, 0.20, 0.25);
+				end
+			end
 		end
 	end
 
