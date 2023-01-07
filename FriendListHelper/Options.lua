@@ -14,7 +14,7 @@ FriendListHelper.options = {
 		versionAndDescription = {
 			order = 1,
             type = "description",
-			name = "|c0189ADB1".."Version".."|r "..GetAddOnMetadata("FriendListHelper", "Version").."|c0189ADB1".." Author".."|r "..GetAddOnMetadata("BuckUI","Author").."\n",
+			name = "Version : 2.0.1",
 			fontSize = "medium",
             cmdHidden = true,
 		},

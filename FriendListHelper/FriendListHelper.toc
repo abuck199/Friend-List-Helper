@@ -1,6 +1,6 @@
 ## Interface: 100002
 ## Title: |c0189ADB1FriendListHelper|r
-## Version: 2.0
+## Version: 2.0.1
 ## Author: Bucksp - Zul'jin (NA)
 ## Notes: Made by Bucksp - Zul'jin (NA)
 ## SavedVariables: FriendListHelperDB
