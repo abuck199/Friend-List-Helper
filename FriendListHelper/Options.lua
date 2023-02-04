@@ -1,9 +1,9 @@
 FriendListHelper.defaults = {
 	profile = {
-		FactionColorBackground = false,
-        PutGreyNameOnFriendPlayingClassic = false,
-		ShowFriendLevelCustom = false,
-		ShowFriendClassColor = false,
+		FactionColorBackground = true,
+        PutGreyNameOnFriendPlayingClassic = true,
+		ShowFriendLevelCustom = true,
+		ShowFriendClassColor = true,
 	},
 }
 FriendListHelper.options = {
@@ -14,7 +14,7 @@ FriendListHelper.options = {
 		versionAndDescription = {
 			order = 1,
             type = "description",
-			name = "Version : 2.0.1",
+			name = "Version : 2.2.0",
 			fontSize = "medium",
             cmdHidden = true,
 		},
