@@ -1,8 +1,9 @@
-## Interface: 100005
+## Interface: 100100
 ## Title: |c0189ADB1FriendListHelper|r
-## Version: 2.2.0
+## Version: 2.4.0
 ## Author: Bucksp - Zul'jin (NA)
 ## Notes: Made by Bucksp - Zul'jin (NA)
+## IconTexture: interface\icons\achievement_guildperk_everybodysfriend
 ## SavedVariables: FriendListHelperDB
 ## OptionalDeps: Ace3
 

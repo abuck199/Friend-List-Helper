@@ -14,7 +14,7 @@ FriendListHelper.options = {
 		versionAndDescription = {
 			order = 1,
             type = "description",
-			name = "Version : 2.2.0",
+			name = "Version : 2.4.0",
 			fontSize = "medium",
             cmdHidden = true,
 		},
