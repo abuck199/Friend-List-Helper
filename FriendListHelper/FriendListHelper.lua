@@ -737,24 +737,24 @@ end
 --------------------------------------------------------------------------------
 -- add associative array for class color in friend depending of the player class
 --------------------------------------------------------------------------------
-function GetOnlineFriendClassColor() 
-	local classColor = { 
-		Shaman 		= "0070DD", 
-		Mage 		= "3FC7EB",
-		Warlock 	= "8788EE",
-		Hunter		= "AAD372",
-		Rogue		= "FFF468",
-		Priest		= "FFFFFF",
-		Druid 		= "FF7C0A",
-		DeathKnight = "C41E3A",
-		Warrior 	= "C69B6D",
-		Paladin 	= "F48CBA",
-		Monk		= "00FF98",
-		DemonHunter = "A330C9",
-		Evoker		= "33937F",
-	}
+local function HexClassColor(r, g, b) 
+	-- return white if class name losed when bnet broke
+	if not r then return "|cffFFFFFF" end
+	
+	if type(r) == "table" then
+		if(r.r) then
+			r, g, b = r.r, r.g, r.b
+		else
+			r, g, b = unpack(r)
+		end
+	end
+	
+	return ("|cff%02x%02x%02x"):format(r * 255, g * 255, b * 255)
+end
 
-	return classColor;
+local ClassList = {}
+for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
+	ClassList[v] = k
 end
 
 function FriendsList_CheckRIDWarning()
@@ -1377,19 +1377,21 @@ function FriendsFrame_GetBNetAccountNameAndStatus(accountInfo, noCharacterName)
 	local nameText, nameColor, statusTexture;
 
 	nameText = BNet_GetBNetAccountName(accountInfo);
-	local classColor = GetOnlineFriendClassColor()
+	
 	if not noCharacterName then
 		local characterName = BNet_GetValidatedCharacterName(accountInfo.gameAccountInfo.characterName, nil, accountInfo.gameAccountInfo.clientProgram);
+		local class = ClassList[accountInfo.gameAccountInfo.className]
+		local classColor = HexClassColor((CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class])
 		if characterName ~= "" then
 			if accountInfo.gameAccountInfo.clientProgram == BNET_CLIENT_WOW and CanCooperateWithGameAccount(accountInfo) then
 				if FriendListHelper.db.profile.ShowFriendClassColor and not FriendListHelper.db.profile.ShowFriendLevelCustom then
-					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")"..FONT_COLOR_CODE_CLOSE;
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..classColor..characterName.."|r"..")"..FONT_COLOR_CODE_CLOSE;
 				end
 				if FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
 					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")".." lvl "..accountInfo.gameAccountInfo.characterLevel..FONT_COLOR_CODE_CLOSE;
 				end
 				if FriendListHelper.db.profile.ShowFriendLevelCustom and FriendListHelper.db.profile.ShowFriendClassColor then
-					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")].." lvl "..accountInfo.gameAccountInfo.characterLevel.."|r"..FONT_COLOR_CODE_CLOSE;
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..classColor..characterName.."|r"..")"..classColor.." lvl "..accountInfo.gameAccountInfo.characterLevel.."|r"..FONT_COLOR_CODE_CLOSE;
 				end
 				if not FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
 					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
@@ -1399,13 +1401,13 @@ function FriendsFrame_GetBNetAccountNameAndStatus(accountInfo, noCharacterName)
 					characterName = accountInfo.gameAccountInfo.characterName..CANNOT_COOPERATE_LABEL;
 				end
 				if FriendListHelper.db.profile.ShowFriendClassColor and not FriendListHelper.db.profile.ShowFriendLevelCustom then
-					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")"..FONT_COLOR_CODE_CLOSE;
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..classColor..characterName.."|r"..")"..FONT_COLOR_CODE_CLOSE;
 				end
 				if FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
 					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")".." lvl "..accountInfo.gameAccountInfo.characterLevel..FONT_COLOR_CODE_CLOSE;
 				end
 				if FriendListHelper.db.profile.ShowFriendLevelCustom and FriendListHelper.db.profile.ShowFriendClassColor then
-					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."(".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")]..characterName.."|r"..")".."|cff"..classColor[string.gsub(accountInfo.gameAccountInfo.className, "%s+", "")].." lvl "..accountInfo.gameAccountInfo.characterLevel.."|r"..FONT_COLOR_CODE_CLOSE;
+					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..classColor..characterName.."|r"..")"..classColor.." lvl "..accountInfo.gameAccountInfo.characterLevel.."|r"..FONT_COLOR_CODE_CLOSE;
 				end
 				if not FriendListHelper.db.profile.ShowFriendLevelCustom and not FriendListHelper.db.profile.ShowFriendClassColor then
 					nameText = nameText.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..characterName..")"..FONT_COLOR_CODE_CLOSE;
