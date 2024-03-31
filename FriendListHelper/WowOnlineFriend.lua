@@ -40,7 +40,7 @@ FriendsTabHeaderTab1.SetPoint = function () end
 
 local btn = CreateFrame("Button", "CustomAddFriend", FriendsTabHeaderTab3, "FriendsTabTemplate");
 btn:SetPoint("RIGHT", FriendsTabHeaderTab3, "RIGHT", 75, 0)
-btn:SetText(ADD_FRIEND);
+btn:SetText("Add friend");
 btn:SetScript("OnClick", FriendsFrameAddFriendButton_OnClick)
 
 CustomAddFriend.LeftActive:SetAlpha(0)
