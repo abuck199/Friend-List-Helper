@@ -15,7 +15,7 @@ function GetTotalWowFriendOnline()
 		end
 	end
 
-	FriendsFrameTitleText:SetText("You have "..IndexWowFriendOnline.. " friends playing WoW")
+	FriendsFrameTitleText:SetText(IndexWowFriendOnline.. " Friends currently on WoW")
 end
 FriendsFrameTitleText:SetVertexColor(0.196, 0.803, 0.196, 1)
 

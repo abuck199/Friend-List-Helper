@@ -1,8 +1,8 @@
-## Interface: 100206
+## Interface: 110007
 ## Title: |c0189ADB1FriendListHelper|r
-## Version: 5.0.0
-## Author: Bucksp - Zul'jin (NA)
-## Notes: Made by Bucksp - Zul'jin (NA)
+## Version: 11.0.0
+## Author: Bucksp - Zul'jin
+## Notes: Made by Bucksp - Zul'jin
 ## IconTexture: interface\icons\achievement_guildperk_everybodysfriend
 ## SavedVariables: FriendListHelperDB
 ## OptionalDeps: Ace3
@@ -26,4 +26,3 @@ Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 
 FriendListHelper.lua
 WowOnlineFriend.lua
-Options.lua
