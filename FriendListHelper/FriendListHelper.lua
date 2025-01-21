@@ -12,7 +12,6 @@ FriendListHelper.defaults = {
 -- Utility: Hex Class Color and Class List
 --------------------------------------------------------------------------------
 local function HexClassColor(r, g, b) 
-	-- return white if class name losed when bnet broke
 	if not r then return "|cffFFFFFF" end
 
 	if type(r) == "table" then
@@ -69,7 +68,7 @@ hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button, elementData)
     local localizedClassName = accountInfo.gameAccountInfo.className
     local classKey = localizedClassName and ClassList[localizedClassName]
     local isWoW = accountInfo.gameAccountInfo.clientProgram == BNET_CLIENT_WOW
-    local isRetail = accountInfo.gameAccountInfo.wowProjectID == WOW_PROJECT_MAINLINE -- Retail WoW check
+    local isRetail = accountInfo.gameAccountInfo.wowProjectID == WOW_PROJECT_MAINLINE
 
     if not isOnline then
         button.background:SetColorTexture(FRIENDS_OFFLINE_BACKGROUND_COLOR.r, FRIENDS_OFFLINE_BACKGROUND_COLOR.g, FRIENDS_OFFLINE_BACKGROUND_COLOR.b, FRIENDS_OFFLINE_BACKGROUND_COLOR.a)
@@ -85,7 +84,7 @@ hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button, elementData)
         end
 
         if characterName and characterName ~= "" then
-            displayedName = format("%s |cff808080(%s)|r", displayedName, characterName) -- Grey color
+            displayedName = format("%s |cff808080(%s)|r", displayedName, characterName)
         end
 
         button.name:SetText(displayedName)
@@ -105,9 +104,9 @@ hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button, elementData)
     if FriendListHelper.db.profile.EnableFactionBackgroundColor and isRetail then
         local faction = accountInfo.gameAccountInfo.factionName
         if faction == "Alliance" then
-            button.background:SetColorTexture(0.05, 0.2, 0.6, 0.3) -- Darker Blue for Alliance
+            button.background:SetColorTexture(0.05, 0.2, 0.6, 0.3)
         elseif faction == "Horde" then
-            button.background:SetColorTexture(0.6, 0.1, 0.1, 0.3) -- Darker Red for Horde
+            button.background:SetColorTexture(0.6, 0.1, 0.1, 0.3)
         else
             button.background:SetColorTexture(FRIENDS_BNET_BACKGROUND_COLOR.r, FRIENDS_BNET_BACKGROUND_COLOR.g, FRIENDS_BNET_BACKGROUND_COLOR.b, FRIENDS_BNET_BACKGROUND_COLOR.a)
         end
@@ -135,7 +134,7 @@ local function AddSearchBar()
     local placeholder = searchBar:CreateFontString(nil, "OVERLAY", "GameFontHighlightMedium")
     placeholder:SetPoint("LEFT", searchBar, "LEFT", 5, 0)
     placeholder:SetText("Search here ...")
-    placeholder:SetTextColor(0.5, 0.5, 0.5, 0.7) -- Light gray color
+    placeholder:SetTextColor(0.5, 0.5, 0.5, 0.7)
 
     local function UpdatePlaceholder()
         if searchBar:GetText() == "" then
@@ -145,10 +144,38 @@ local function AddSearchBar()
         end
     end
 
+    local activeSearchText = ""
+    local isSearchActive = false
+
+    local frame = CreateFrame("Frame")
+    frame:RegisterEvent("FRIENDLIST_UPDATE")
+    frame:SetScript("OnEvent", function()
+        if isSearchActive and activeSearchText then
+            UpdateFriendList(activeSearchText)
+        else
+            UpdateFriendList("")
+        end
+    end)
+
     searchBar:SetScript("OnTextChanged", function(self)
         UpdatePlaceholder()
-        local searchText = self:GetText():lower()
-        UpdateFriendList(searchText)
+        activeSearchText = self:GetText():lower()
+
+        isSearchActive = (#activeSearchText > 0)
+
+        UpdateFriendList(activeSearchText)
+    end)
+
+    FriendsListFrame:HookScript("OnHide", function()
+        activeSearchText = ""
+        isSearchActive = false
+        UpdateFriendList("")
+    end)
+
+    hooksecurefunc("FriendsList_Update", function()
+        if isSearchActive and activeSearchText then
+            UpdateFriendList(activeSearchText)
+        end
     end)
 
     searchBar:SetScript("OnEditFocusGained", function()

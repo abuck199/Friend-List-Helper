@@ -1,6 +1,6 @@
 ## Interface: 110007
 ## Title: |c0189ADB1FriendListHelper|r
-## Version: 11.0.0
+## Version: 12.0.0
 ## Author: Bucksp - Zul'jin
 ## Notes: Made by Bucksp - Zul'jin
 ## IconTexture: interface\icons\achievement_guildperk_everybodysfriend
