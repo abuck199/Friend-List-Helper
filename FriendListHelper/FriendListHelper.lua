@@ -55,6 +55,22 @@ end
 -- Hook for Background and Character Name Coloring
 --------------------------------------------------------------------------------
 hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button, elementData)
+
+    -- whisper friend via double click
+    button:SetScript("OnDoubleClick", function(self)
+        if self.buttonType == FRIENDS_BUTTON_TYPE_WOW then
+            local info = C_FriendList.GetFriendInfoByIndex(self.id)
+            if info then
+                ChatFrame_SendTell(info.name)
+            end
+        elseif self.buttonType == FRIENDS_BUTTON_TYPE_BNET then
+            local info = C_BattleNet.GetFriendAccountInfo(self.id)
+            if info then
+                ChatFrame_SendBNetTell(info.accountName)
+            end
+        end
+    end)
+
     if not elementData or not elementData.buttonType or elementData.buttonType ~= FRIENDS_BUTTON_TYPE_BNET then
         return
     end
