@@ -29,6 +29,9 @@ local ClassList = {}
 for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
 	ClassList[v] = k
 end
+for k, v in pairs(LOCALIZED_CLASS_NAMES_FEMALE) do
+	ClassList[v] = k
+end
 
 --------------------------------------------------------------------------------
 -- Update Friend List Based on Search Text
