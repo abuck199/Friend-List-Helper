@@ -1,4 +1,4 @@
-FriendListHelper = LibStub("AceAddon-3.0"):NewAddon("FriendListHelper", "AceEvent-3.0", "AceConsole-3.0")
+local FriendListHelper = LibStub("AceAddon-3.0"):NewAddon("FriendListHelper", "AceEvent-3.0", "AceConsole-3.0")
 local AceGUI = LibStub("AceGUI-3.0")
 
 FriendListHelper.defaults = {
@@ -42,7 +42,7 @@ local function UpdateFriendList(searchText)
         if accountInfo then
             local battleTag = (accountInfo.battleTag or ""):lower()
             local characterName = (accountInfo.gameAccountInfo.characterName or ""):lower()
-            if #searchText == 0 or battleTag:find(searchText, 1, true) or characterName:find(searchText, 1, true) then
+            if  "" == searchText or battleTag:find(searchText, 1, true) or characterName:find(searchText, 1, true) then
                 dataProvider:Insert({id = i, buttonType = FRIENDS_BUTTON_TYPE_BNET})
             end
         end
@@ -286,10 +286,5 @@ end
 
 function FriendListHelper:OnPlayerLogin()
     print("|c0189ADB1FriendListHelper|r: Type |cfff58cba/flh|r or |cfff58cba/fl|r to open settings.")
-end
-
-local frame = CreateFrame("Frame")
-frame:RegisterEvent("PLAYER_LOGIN")
-frame:SetScript("OnEvent", function()
     AddSearchBar()
-end)
+end

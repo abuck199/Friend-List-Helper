@@ -1,32 +1,31 @@
 --------------------------------------------------------------------------------
 -- Show WoWOnline/Total friend 
 --------------------------------------------------------------------------------
-function GetTotalWowFriendOnline()
-	IndexWowFriendOnline = 0
+local function GetTotalWowFriendOnline()
+	local CountOfFriendsOnline = 0
 
 	for i = 1, BNGetNumFriends() do
 		for j = 1, C_BattleNet.GetFriendNumGameAccounts(i) do
 			local game = C_BattleNet.GetFriendGameAccountInfo(i, j)
-			if game.characterName ~= nil then
-				for k, v in pairs{game.characterName} do
-					IndexWowFriendOnline = IndexWowFriendOnline + 1
-				end
+			-- is it the WoW client and
+			if game.clientProgram == BNET_CLIENT_WOW and game.wowProjectID == WOW_PROJECT_ID then
+				CountOfFriendsOnline = CountOfFriendsOnline + 1
 			end
 		end
 	end
 
-	FriendsFrameTitleText:SetText(IndexWowFriendOnline.. " Friends currently on WoW")
-end
-FriendsFrameTitleText:SetVertexColor(0.196, 0.803, 0.196, 1)
-
-GetTotalWowFriendOnline()
-
-function UpdateOnlineFriend()
-	numFriends, numOnline = BNGetNumFriends()
+	FriendsFrameTitleText:SetText(CountOfFriendsOnline .. " Friends currently on WoW")
 end
 
-hooksecurefunc("FriendsList_Update", UpdateOnlineFriend)
-hooksecurefunc("FriendsList_Update", GetTotalWowFriendOnline)
+hooksecurefunc("FriendsFrame_Update", function()
+	local selectedTab = PanelTemplates_GetSelectedTab(FriendsFrame) or FRIEND_TAB_FRIENDS
+	if selectedTab == FRIEND_TAB_FRIENDS then
+		local selectedHeaderTab = PanelTemplates_GetSelectedTab(FriendsTabHeader) or FRIEND_HEADER_TAB_FRIENDS
+		if selectedHeaderTab == FRIEND_HEADER_TAB_FRIENDS then
+			GetTotalWowFriendOnline()
+		end
+	end
+end)
 
 --------------------------------------------------------------------------------
 -- Change Friends Frame Add Friend Button Background  
@@ -40,7 +39,7 @@ FriendsTabHeaderTab1.SetPoint = function () end
 
 local btn = CreateFrame("Button", "CustomAddFriend", FriendsTabHeaderTab3, "FriendsTabTemplate");
 btn:SetPoint("RIGHT", FriendsTabHeaderTab3, "RIGHT", 75, 0)
-btn:SetText("Add friend");
+btn:SetText(ADD_FRIEND)
 btn:SetScript("OnClick", FriendsFrameAddFriendButton_OnClick)
 
 CustomAddFriend.LeftActive:SetAlpha(0)
