@@ -1,4 +1,4 @@
-## Interface: 110100
+## Interface: 120000
 ## Title: |c0189ADB1FriendListHelper|r
 ## Version: 12.0.0
 ## Author: Bucksp - Zul'jin

@@ -164,8 +164,9 @@ local function AddSearchBar()
     if not FriendsListFrame then return end
 
     local searchBar = CreateFrame("EditBox", "FriendListHelper_SearchBar", FriendsListFrame, "InputBoxTemplate")
-    searchBar:SetSize(325, 20)
+    searchBar:SetHeight(20)
     searchBar:SetPoint("BOTTOMLEFT", FriendsListFrame, "BOTTOMLEFT", 10, 5)
+    searchBar:SetPoint("BOTTOMRIGHT", FriendsFrameAddFriendButton, "BOTTOMLEFT", -5, 0)
     searchBar:SetAutoFocus(false)
     searchBar:SetText("")
     searchBar:ClearFocus()

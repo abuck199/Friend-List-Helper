@@ -30,22 +30,8 @@ end)
 --------------------------------------------------------------------------------
 -- Change Friends Frame Add Friend Button Background  
 --------------------------------------------------------------------------------
-FriendsFrameAddFriendButton:Hide()
 FriendsFrameSendMessageButton:Hide()
-
-FriendsTabHeaderTab1:ClearAllPoints()
-FriendsTabHeaderTab1:SetPoint("TOPLEFT", FriendsListFrame, "TOPLEFT", 4, -50)
-FriendsTabHeaderTab1.SetPoint = function () end
-
-local btn = CreateFrame("Button", "CustomAddFriend", FriendsTabHeaderTab3, "FriendsTabTemplate");
-btn:SetPoint("RIGHT", FriendsTabHeaderTab3, "RIGHT", 75, 0)
-btn:SetText(ADD_FRIEND)
-btn:SetScript("OnClick", FriendsFrameAddFriendButton_OnClick)
-
-CustomAddFriend.LeftActive:SetAlpha(0)
-CustomAddFriend.MiddleActive:SetAlpha(0)
-CustomAddFriend.RightActive:SetAlpha(0)
-CustomAddFriend.Text:SetVertexColor(0.196, 0.803, 0.196, 1)
-CustomAddFriend.Text:ClearAllPoints()
-CustomAddFriend.Text:SetPoint("BOTTOM", CustomAddFriend, "BOTTOM", 0, 3)
-CustomAddFriend.Text.SetPoint = function () end
+FriendsFrameAddFriendButton.fitTextWidthPadding = 30
+FriendsFrameAddFriendButton:FitToText()
+FriendsFrameAddFriendButton:ClearAllPoints()
+FriendsFrameAddFriendButton:SetPoint("BOTTOMRIGHT", FriendsListFrame, "BOTTOMRIGHT", -6, 4)
