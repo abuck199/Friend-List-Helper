@@ -85,12 +85,12 @@ hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button, elementData)
         if self.buttonType == FRIENDS_BUTTON_TYPE_WOW then
             local info = C_FriendList.GetFriendInfoByIndex(self.id)
             if info then
-                ChatFrame_SendTell(info.name)
+                ChatFrameUtil.SendTell(info.name)
             end
         elseif self.buttonType == FRIENDS_BUTTON_TYPE_BNET then
             local info = C_BattleNet.GetFriendAccountInfo(self.id)
             if info then
-                ChatFrame_SendBNetTell(info.accountName)
+                ChatFrameUtil.SendBNetTell(info.accountName)
             end
         end
     end)
