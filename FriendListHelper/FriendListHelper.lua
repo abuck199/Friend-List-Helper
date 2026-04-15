@@ -1,4 +1,4 @@
-FriendListHelper = LibStub("AceAddon-3.0"):NewAddon("FriendListHelper", "AceEvent-3.0", "AceConsole-3.0")
+local FriendListHelper = LibStub("AceAddon-3.0"):NewAddon("FriendListHelper", "AceEvent-3.0", "AceConsole-3.0")
 local AceGUI = LibStub("AceGUI-3.0")
 
 FriendListHelper.defaults = {
@@ -29,32 +29,72 @@ local ClassList = {}
 for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
 	ClassList[v] = k
 end
+for k, v in pairs(LOCALIZED_CLASS_NAMES_FEMALE) do
+	ClassList[v] = k
+end
 
 --------------------------------------------------------------------------------
 -- Update Friend List Based on Search Text
 --------------------------------------------------------------------------------
-local function UpdateFriendList(searchText)
-    local numBNetFriends = BNGetNumFriends()
-    local dataProvider = CreateDataProvider()
-
-    for i = 1, numBNetFriends do
-        local accountInfo = C_BattleNet.GetFriendAccountInfo(i)
-        if accountInfo then
-            local battleTag = (accountInfo.battleTag or ""):lower()
-            local characterName = (accountInfo.gameAccountInfo.characterName or ""):lower()
-            if #searchText == 0 or battleTag:find(searchText, 1, true) or characterName:find(searchText, 1, true) then
-                dataProvider:Insert({id = i, buttonType = FRIENDS_BUTTON_TYPE_BNET})
-            end
-        end
+local function FilterFriendList(searchText)
+    if searchText == "" then
+        return
     end
 
-    FriendsListFrame.ScrollBox:SetDataProvider(dataProvider, ScrollBoxConstants.RetainScrollPosition)
+    local dataProvider = FriendsListFrame.ScrollBox:GetDataProvider()
+    local toRemove = {}
+
+    dataProvider:ForEach(function(elementData)
+        if elementData.buttonType == FRIENDS_BUTTON_TYPE_WOW then
+            local info = C_FriendList.GetFriendInfoByIndex(elementData.id)
+            local characterName = (info.name or ""):lower()
+            local note = (info.notes or ""):lower()
+            if nil == characterName:find(searchText, 1, true)
+                and nil == note:find(searchText, 1, true)
+            then
+                toRemove[#toRemove + 1] = elementData
+            end
+        elseif elementData.buttonType == FRIENDS_BUTTON_TYPE_BNET then
+            local accountInfo = C_BattleNet.GetFriendAccountInfo(elementData.id)
+            if accountInfo then
+                local battleTag = (accountInfo.battleTag or ""):lower()
+                local note = (accountInfo.note or ""):lower()
+                local characterName = (accountInfo.gameAccountInfo.characterName or ""):lower()
+                if nil == battleTag:find(searchText, 1, true)
+                    and nil == characterName:find(searchText, 1, true)
+                    and nil == note:find(searchText, 1, true)
+                then
+                    toRemove[#toRemove + 1] = elementData
+                end
+            end
+        end
+    end)
+
+    if #toRemove > 0 then
+        dataProvider:Remove(unpack(toRemove))
+    end
 end
 
 --------------------------------------------------------------------------------
 -- Hook for Background and Character Name Coloring
 --------------------------------------------------------------------------------
 hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button, elementData)
+
+    -- whisper friend via double click
+    button:SetScript("OnDoubleClick", function(self)
+        if self.buttonType == FRIENDS_BUTTON_TYPE_WOW then
+            local info = C_FriendList.GetFriendInfoByIndex(self.id)
+            if info then
+                ChatFrameUtil.SendTell(info.name)
+            end
+        elseif self.buttonType == FRIENDS_BUTTON_TYPE_BNET then
+            local info = C_BattleNet.GetFriendAccountInfo(self.id)
+            if info then
+                ChatFrameUtil.SendBNetTell(info.accountName)
+            end
+        end
+    end)
+
     if not elementData or not elementData.buttonType or elementData.buttonType ~= FRIENDS_BUTTON_TYPE_BNET then
         return
     end
@@ -124,8 +164,9 @@ local function AddSearchBar()
     if not FriendsListFrame then return end
 
     local searchBar = CreateFrame("EditBox", "FriendListHelper_SearchBar", FriendsListFrame, "InputBoxTemplate")
-    searchBar:SetSize(325, 20)
+    searchBar:SetHeight(20)
     searchBar:SetPoint("BOTTOMLEFT", FriendsListFrame, "BOTTOMLEFT", 10, 5)
+    searchBar:SetPoint("BOTTOMRIGHT", FriendsFrameAddFriendButton, "BOTTOMLEFT", -5, 0)
     searchBar:SetAutoFocus(false)
     searchBar:SetText("")
     searchBar:ClearFocus()
@@ -145,37 +186,16 @@ local function AddSearchBar()
     end
 
     local activeSearchText = ""
-    local isSearchActive = false
 
-    local frame = CreateFrame("Frame")
-    frame:RegisterEvent("FRIENDLIST_UPDATE")
-    frame:SetScript("OnEvent", function()
-        if isSearchActive and activeSearchText then
-            UpdateFriendList(activeSearchText)
-        else
-            UpdateFriendList("")
-        end
+    hooksecurefunc("FriendsList_Update", function()
+        FilterFriendList(activeSearchText)
     end)
 
     searchBar:SetScript("OnTextChanged", function(self)
         UpdatePlaceholder()
         activeSearchText = self:GetText():lower()
 
-        isSearchActive = (#activeSearchText > 0)
-
-        UpdateFriendList(activeSearchText)
-    end)
-
-    FriendsListFrame:HookScript("OnHide", function()
-        activeSearchText = ""
-        isSearchActive = false
-        UpdateFriendList("")
-    end)
-
-    hooksecurefunc("FriendsList_Update", function()
-        if isSearchActive and activeSearchText then
-            UpdateFriendList(activeSearchText)
-        end
+        FriendsList_Update(true)
     end)
 
     searchBar:SetScript("OnEditFocusGained", function()
@@ -186,15 +206,13 @@ local function AddSearchBar()
         UpdatePlaceholder()
     end)
 
-    local function ResetSearchBar()
+    FriendsListFrame:HookScript("OnHide", function()
         searchBar:SetText("")
         searchBar:SetAutoFocus(false)
         searchBar:ClearFocus()
-        FriendsList_Update(true)
-    end
 
-    FriendsListFrame:HookScript("OnHide", function()
-        ResetSearchBar()
+        activeSearchText = ""
+        FriendsList_Update(true)
     end)
 
     UpdatePlaceholder()
@@ -286,10 +304,5 @@ end
 
 function FriendListHelper:OnPlayerLogin()
     print("|c0189ADB1FriendListHelper|r: Type |cfff58cba/flh|r or |cfff58cba/fl|r to open settings.")
-end
-
-local frame = CreateFrame("Frame")
-frame:RegisterEvent("PLAYER_LOGIN")
-frame:SetScript("OnEvent", function()
     AddSearchBar()
-end)
+end
